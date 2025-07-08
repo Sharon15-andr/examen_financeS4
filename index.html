@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>EF – Gestion des prêts</title>
+  <link rel="icon" href="data:,">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            secondary: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            accent: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce',
+              800: '#6b21a8',
+              900: '#581c87',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-primary-50 text-gray-800 p-6">
+
+  <h1 class="text-3xl font-bold mb-6 text-primary-800">Établissement Financier – Gestion des prêts</h1>
+
+  <!-- ========== 1. AJOUT FONDS ========== -->
+  <section class="bg-white/90 backdrop-blur rounded-lg p-4 mb-6 shadow-lg border border-primary-100">
+    <h2 class="text-xl font-semibold mb-4 text-primary-700">Ajouter un fond</h2>
+    <form id="form-fond" class="flex flex-wrap gap-4 items-end">
+      <label class="grow">
+        <span class="block text-sm font-medium text-primary-600">Montant</span>
+        <input type="number" step="0.01" required name="montant" class="w-full border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Date</span>
+        <input type="date" required name="date_ajout" class="border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors" type="submit">Ajouter</button>
+    </form>
+  </section>
+
+  <!-- ========== 2. AJOUT TYPE PRET ========== -->
+  <section class="bg-white/90 backdrop-blur rounded-lg p-4 mb-6 shadow-lg border border-primary-100">
+    <h2 class="text-xl font-semibold mb-4 text-primary-700">Ajouter un type de prêt</h2>
+    <form id="form-typepret" class="flex flex-wrap gap-4 items-end">
+      <label class="grow">
+        <span class="block text-sm font-medium text-primary-600">Libellé</span>
+        <input type="text" required name="libelle" class="w-full border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Taux % annuel</span>
+        <input type="number" step="0.01" required name="taux" class="border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors" type="submit">Ajouter</button>
+    </form>
+  </section>
+
+  <!-- ========== 3. AJOUT CLIENT ========== -->
+  <section class="bg-white/90 backdrop-blur rounded-lg p-4 mb-6 shadow-lg border border-primary-100">
+    <h2 class="text-xl font-semibold mb-4 text-primary-700">Ajouter un client</h2>
+    <form id="form-client" class="flex flex-wrap gap-4 items-end">
+      <label class="grow">
+        <span class="block text-sm font-medium text-primary-600">Prénom</span>
+        <input type="text" required name="prenom" class="w-full border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label class="grow">
+        <span class="block text-sm font-medium text-primary-600">Nom</span>
+        <input type="text" required name="nom" class="w-full border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors" type="submit">Ajouter</button>
+    </form>
+  </section>
+
+  <!-- ========== 4. CREATION PRET ========== -->
+  <section class="bg-white/90 backdrop-blur rounded-lg p-4 mb-6 shadow-lg border border-primary-100">
+    <h2 class="text-xl font-semibold mb-4 text-primary-700">Créer un prêt</h2>
+    <form id="form-pret" class="grid md:grid-cols-2 gap-4 items-end">
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Client</span>
+        <select id="select-client" required name="client_id" class="border border-primary-200 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-300 focus:border-primary-400"></select>
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Type de prêt</span>
+        <select id="select-typepret" required name="type_pret_id" class="border border-primary-200 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-300 focus:border-primary-400"></select>
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Montant</span>
+        <input type="number" step="0.01" required name="montant" class="border border-primary-200 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Date début</span>
+        <input type="date" required name="date_debut" class="border border-primary-200 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Durée (mois)</span>
+        <input type="number" required name="duree_mois" class="border border-primary-200 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors col-span-full md:w-max" type="submit">Créer le prêt</button>
+    </form>
+  </section>
+
+  <!-- ========== 5. STATISTIQUES INTERÊTS ========== -->
+  <section class="bg-white/90 backdrop-blur rounded-lg p-4 shadow-lg border border-primary-100">
+    <h2 class="text-xl font-semibold mb-4 text-primary-700">Intérêts gagnés</h2>
+    <form id="form-filtre" class="flex flex-wrap gap-4 items-end mb-4">
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Client (optionnel)</span>
+        <select id="filtre-client" name="client_id" class="border border-primary-200 rounded-lg p-2 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+          <option value="">Tous</option>
+        </select>
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Mois début</span>
+        <input type="number" min="1" max="12" name="mois_debut" required class="border border-primary-200 rounded-lg p-2 w-24 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Année début</span>
+        <input type="number" name="annee_debut" required class="border border-primary-200 rounded-lg p-2 w-28 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Mois fin</span>
+        <input type="number" min="1" max="12" name="mois_fin" required class="border border-primary-200 rounded-lg p-2 w-24 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <label>
+        <span class="block text-sm font-medium text-primary-600">Année fin</span>
+        <input type="number" name="annee_fin" required class="border border-primary-200 rounded-lg p-2 w-28 focus:ring-2 focus:ring-primary-300 focus:border-primary-400">
+      </label>
+      <button class="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg transition-colors" type="submit">Afficher</button>
+    </form>
+
+    <!-- Tableau -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-collapse text-center" id="table-interets">
+        <thead>
+          <tr class="bg-primary-100">
+            <th class="border border-primary-200 p-2 text-primary-800">Année</th>
+            <th class="border border-primary-200 p-2 text-primary-800">Mois</th>
+            <th class="border border-primary-200 p-2 text-primary-800">Intérêt&nbsp;(Ar)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Graphique -->
+    <canvas id="chart-interets" class="mt-6"></canvas>
+  </section>
+
+  <!-- ========== JS ========== -->
+  <script>
+    // [Votre code JavaScript existant reste inchangé]
+    const API = 'http://localhost:8000';
+ 
+    /* ---------- Helpers ---------- */
+    const $ = s => document.querySelector(s);
+
+    async function postJson(url, body) {
+      const r = await fetch(API + url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) throw await r.text();
+      return r.json();
+    }
+    async function getJson(url) {
+      const r = await fetch(API + url);
+      if (!r.ok) throw await r.text();
+      return r.json();
+    }
+
+
+
+
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // Remplir les selects (client et type de prêt)
+    async function loadSelectOptions() {
+        try {
+            // Charger les clients
+            const clientsRes = await fetch('/clients'); // Adaptez l'URL
+            const clients = await clientsRes.json();
+            const clientSelect = document.getElementById('select-client');
+            
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.nom + ' ' + client.prenom;
+                clientSelect.appendChild(option);
+            });
+            
+            // Charger les types de prêt
+            const typesRes = await fetch('/types-pret'); // Adaptez l'URL
+            const types = await typesRes.json();
+            const typeSelect = document.getElementById('select-typepret');
+            
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.id;
+                option.textContent = type.nom;
+                typeSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erreur chargement options:', error);
+        }
+    }
+    
+    // Gestion soumission formulaire
+   document.getElementById('form-pret').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        client_id: this.elements.client_id.value,
+        type_pret_id: this.elements.type_pret_id.value,
+        montant: parseFloat(this.elements.montant.value),
+        date_debut: this.elements.date_debut.value,
+        duree_mois: parseInt(this.elements.duree_mois.value)
+    };
+    
+    try {
+        const response = await fetch(`${API}/prets`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        // Première vérification du content-type
+        const contentType = response.headers.get('content-type');
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            if (response.ok) {
+                // Si la réponse est OK mais pas JSON, considérer comme succès
+                alert('Prêt créé avec succès!');
+                this.reset();
+                return;
+            }
+            throw new Error('Réponse non-JSON du serveur');
+        }
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Erreur lors de la création');
+        }
+        
+        alert('Prêt créé avec succès! ID: ' + (result.id || ''));
+        this.reset();
+        
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        alert('Erreur: ' + error.message);
+    }
+});
+    
+    // Initialiser les selects au chargement
+    loadSelectOptions();
+});
+
+
+
+
+    /* ---------- 1. Fonds ---------- */
+    $('#form-fond').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      await postJson('/fonds', data);
+      alert('Fond ajouté !');
+      e.target.reset();
+    });
+
+    /* ---------- 2. Type de prêt ---------- */
+    $('#form-typepret').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      await postJson('/typeprets', data);
+      alert('Type de prêt ajouté');
+      e.target.reset();
+      await rafraichirTypePrets();
+    });
+
+    /* ---------- 3. Client ---------- */
+    $('#form-client').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      await postJson('/clients', data);
+      alert('Client ajouté');
+      e.target.reset();
+      await rafraichirClients();
+    });
+
+    /* ---------- 4. Prêt ---------- */
+    $('#form-pret').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      await postJson('/prets', data);
+      alert('Prêt créé (intérêts mensuels générés)');
+      e.target.reset();
+    });
+
+    /* ---------- 5. Statistiques ---------- */
+    let chart; // Chart.js instance
+    $('#form-filtre').addEventListener('submit', async e => {
+      e.preventDefault();
+      const p = new URLSearchParams(new FormData(e.target));
+      const clientId = p.get('client_id');
+      let url = clientId
+        ? '/interets_client?' + p.toString()
+        : '/interets?' + p.toString().replace('client_id=', '');
+      const rows = await getJson(url);
+
+      // Remplir le tableau
+      const tbody = $('#table-interets tbody');
+      tbody.innerHTML = '';
+      rows.forEach(r => {
+        tbody.insertAdjacentHTML('beforeend',
+          `<tr>
+             <td class="border border-primary-200 p-2">${r.annee}</td>
+             <td class="border border-primary-200 p-2">${r.mois}</td>
+             <td class="border border-primary-200 p-2">${r.total.toLocaleString()}</td>
+           </tr>`);
+      });
+
+      // Graphique
+      const labels = rows.map(r => `${r.mois}/${r.annee}`);
+      const data = rows.map(r => r.total);
+      if (chart) chart.destroy();
+      chart = new Chart($('#chart-interets'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ 
+            label: 'Intérêt (Ar)', 
+            data, 
+            borderColor: '#0ea5e9',
+            backgroundColor: '#bae6fd',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: { 
+          responsive: true, 
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.raw.toLocaleString()} Ar`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString() + ' Ar';
+                }
+              }
+            }
+          }
+        }
+      });
+    });
+
+    /* ---------- Remplissage selects ---------- */
+    async function rafraichirClients() {
+      const clients = await getJson('/clients');
+      const selectC = $('#select-client');
+      const filtreC = $('#filtre-client');
+      selectC.innerHTML = filtreC.innerHTML = '<option value="">Choisir…</option>';
+      clients.forEach(c => {
+        const opt = `<option value="${c.id}">${c.prenom} ${c.nom}</option>`;
+        selectC.insertAdjacentHTML('beforeend', opt);
+        filtreC.insertAdjacentHTML('beforeend', opt);
+      });
+    }
+
+    async function rafraichirTypePrets() {
+      const types = await getJson('/typeprets');
+      const select = $('#select-typepret');
+      select.innerHTML = '<option value="">Choisir…</option>';
+      types.forEach(t => {
+        select.insertAdjacentHTML('beforeend',
+          `<option value="${t.id}">${t.libelle} (${t.taux} %)</option>`);
+      });
+    }
+
+    // Initialisation
+    (async () => {
+      await Promise.all([rafraichirClients(), rafraichirTypePrets()]);
+    })();
+  </script>
+</body>
+</html>
