@@ -74,3 +74,7 @@ CREATE TABLE IF NOT EXISTS remboursement (
   mensualite_totale DOUBLE,
   FOREIGN KEY (pret_id) REFERENCES pret(id)
 );
+
+ALTER TABLE pret
+    -> ADD COLUMN IF NOT EXISTS assurance DOUBLE DEFAULT 0,
+    -> ADD COLUMN IF NOT EXISTS delai INT DEFAULT 0;
